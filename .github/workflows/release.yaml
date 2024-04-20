@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.vscode/**'
+      - '.idea/**'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deChametz-contracts-validate:
+    name: Run deChametz-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/deChametz-contracts-ci.yaml
+
+  deChametz-contracts-release:
+    name: Run deChametz-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/deChametz-contracts-cd.yaml
+    needs: deChametz-contracts-validate
+
+  deChametz-frontend-validate:
+    name: Run deChametz-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/deChametz-frontend-ci.yaml
+
+  deChametz-frontend-release:
+    name: Run deChametz-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/deChametz-frontend-cd.yaml
+    needs: deChametz-frontend-validate

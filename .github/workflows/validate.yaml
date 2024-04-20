@@ -1,0 +1,14 @@
+name: Pull Request validation
+
+on: [pull_request]
+
+
+jobs:
+  deChametz-contracts-ci:
+    name: Run deChametz-contracts validation
+    uses: ./.github/workflows/deChametz-contracts-ci.yaml
+
+  deChametz-frontend-ci:
+    name: Run deChametz-frontend validation
+    uses: ./.github/workflows/deChametz-frontend-ci.yaml
+
