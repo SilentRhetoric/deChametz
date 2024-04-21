@@ -1,0 +1,513 @@
+#pragma version 10
+
+smart_contracts.dechametz.contract.Dechametz.approval_program:
+    txn ApplicationID
+    bnz main_entrypoint@2
+    callsub __init__
+
+main_entrypoint@2:
+    // smart_contracts/dechametz/contract.py:26
+    // class Dechametz(ARC4Contract):
+    txn NumAppArgs
+    bz main_bare_routing@9
+    method "bootstrap()uint64"
+    method "Sell chametz(byte[])void"
+    method "Repurchase chametz()void"
+    txna ApplicationArgs 0
+    match main_bootstrap_route@4 main_Sell_chametz_route@5 main_Repurchase_chametz_route@6
+    err // reject transaction
+
+main_bootstrap_route@4:
+    // smart_contracts/dechametz/contract.py:36
+    // @arc4.abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub bootstrap
+    itob
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_Sell_chametz_route@5:
+    // smart_contracts/dechametz/contract.py:59
+    // @arc4.abimethod(create="disallow", allow_actions=["OptIn"], name="Sell chametz")
+    txn OnCompletion
+    int OptIn
+    ==
+    assert // OnCompletion is OptIn
+    txn ApplicationID
+    assert // is not creating
+    // smart_contracts/dechametz/contract.py:26
+    // class Dechametz(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    // smart_contracts/dechametz/contract.py:59
+    // @arc4.abimethod(create="disallow", allow_actions=["OptIn"], name="Sell chametz")
+    callsub sell_chametz
+    int 1
+    return
+
+main_Repurchase_chametz_route@6:
+    // smart_contracts/dechametz/contract.py:88-90
+    // @arc4.abimethod(
+    //     create="disallow", allow_actions=["CloseOut"], name="Repurchase chametz"
+    // )
+    txn OnCompletion
+    int CloseOut
+    ==
+    assert // OnCompletion is CloseOut
+    txn ApplicationID
+    assert // is not creating
+    callsub repurchase_chametz
+    int 1
+    return
+
+main_bare_routing@9:
+    // smart_contracts/dechametz/contract.py:26
+    // class Dechametz(ARC4Contract):
+    txn OnCompletion
+    !
+    assert // reject transaction
+    txn ApplicationID
+    !
+    assert // is creating
+    int 1
+    return
+
+
+// smart_contracts.dechametz.contract.Dechametz.bootstrap() -> uint64:
+bootstrap:
+    // smart_contracts/dechametz/contract.py:36-37
+    // @arc4.abimethod()
+    // def bootstrap(self) -> UInt64:
+    proto 0 1
+    // smart_contracts/dechametz/contract.py:38
+    // assert Txn.sender == Global.creator_address
+    txn Sender
+    global CreatorAddress
+    ==
+    assert
+    // smart_contracts/dechametz/contract.py:39
+    // assert self.token_asset_id == 0
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    !
+    assert
+    // smart_contracts/dechametz/contract.py:41-54
+    // itxn.AssetConfig(
+    //     total=10000000000,
+    //     decimals=0,
+    //     default_frozen=True,
+    //     asset_name="ForChametz",
+    //     unit_name="4CHAMETZ",
+    //     url="https://dechametz.me",
+    //     manager=Global.current_application_address,
+    //     reserve=Global.current_application_address,
+    //     freeze=Global.current_application_address,
+    //     clawback=Global.current_application_address,
+    //     fee=0,
+    // )
+    // .submit()
+    itxn_begin
+    // smart_contracts/dechametz/contract.py:48
+    // manager=Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/dechametz/contract.py:49-51
+    // reserve=Global.current_application_address,
+    // freeze=Global.current_application_address,
+    // clawback=Global.current_application_address,
+    dupn 3
+    // smart_contracts/dechametz/contract.py:52
+    // fee=0,
+    int 0
+    itxn_field Fee
+    itxn_field ConfigAssetClawback
+    itxn_field ConfigAssetFreeze
+    itxn_field ConfigAssetReserve
+    itxn_field ConfigAssetManager
+    // smart_contracts/dechametz/contract.py:47
+    // url="https://dechametz.me",
+    byte "https://dechametz.me"
+    itxn_field ConfigAssetURL
+    // smart_contracts/dechametz/contract.py:46
+    // unit_name="4CHAMETZ",
+    byte "4CHAMETZ"
+    itxn_field ConfigAssetUnitName
+    // smart_contracts/dechametz/contract.py:45
+    // asset_name="ForChametz",
+    byte "ForChametz"
+    itxn_field ConfigAssetName
+    // smart_contracts/dechametz/contract.py:44
+    // default_frozen=True,
+    int 1
+    itxn_field ConfigAssetDefaultFrozen
+    // smart_contracts/dechametz/contract.py:43
+    // decimals=0,
+    int 0
+    itxn_field ConfigAssetDecimals
+    // smart_contracts/dechametz/contract.py:42
+    // total=10000000000,
+    int 10000000000
+    itxn_field ConfigAssetTotal
+    // smart_contracts/dechametz/contract.py:41
+    // itxn.AssetConfig(
+    int acfg
+    itxn_field TypeEnum
+    // smart_contracts/dechametz/contract.py:41-54
+    // itxn.AssetConfig(
+    //     total=10000000000,
+    //     decimals=0,
+    //     default_frozen=True,
+    //     asset_name="ForChametz",
+    //     unit_name="4CHAMETZ",
+    //     url="https://dechametz.me",
+    //     manager=Global.current_application_address,
+    //     reserve=Global.current_application_address,
+    //     freeze=Global.current_application_address,
+    //     clawback=Global.current_application_address,
+    //     fee=0,
+    // )
+    // .submit()
+    itxn_submit
+    // smart_contracts/dechametz/contract.py:40
+    // self.token_asset_id = (
+    byte "token_asset_id"
+    // smart_contracts/dechametz/contract.py:41-54
+    // itxn.AssetConfig(
+    //     total=10000000000,
+    //     decimals=0,
+    //     default_frozen=True,
+    //     asset_name="ForChametz",
+    //     unit_name="4CHAMETZ",
+    //     url="https://dechametz.me",
+    //     manager=Global.current_application_address,
+    //     reserve=Global.current_application_address,
+    //     freeze=Global.current_application_address,
+    //     clawback=Global.current_application_address,
+    //     fee=0,
+    // )
+    // .submit()
+    itxn CreatedAssetID
+    // smart_contracts/dechametz/contract.py:40-56
+    // self.token_asset_id = (
+    //     itxn.AssetConfig(
+    //         total=10000000000,
+    //         decimals=0,
+    //         default_frozen=True,
+    //         asset_name="ForChametz",
+    //         unit_name="4CHAMETZ",
+    //         url="https://dechametz.me",
+    //         manager=Global.current_application_address,
+    //         reserve=Global.current_application_address,
+    //         freeze=Global.current_application_address,
+    //         clawback=Global.current_application_address,
+    //         fee=0,
+    //     )
+    //     .submit()
+    //     .created_asset.id
+    // )
+    app_global_put
+    // smart_contracts/dechametz/contract.py:57
+    // return self.token_asset_id
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    retsub
+
+
+// smart_contracts.dechametz.contract.Dechametz.sell_chametz(chametz: bytes) -> void:
+sell_chametz:
+    // smart_contracts/dechametz/contract.py:59-60
+    // @arc4.abimethod(create="disallow", allow_actions=["OptIn"], name="Sell chametz")
+    // def sell_chametz(self, chametz: Bytes) -> None:
+    proto 1 0
+    // smart_contracts/dechametz/contract.py:61
+    // assert Txn.sender.is_opted_in(
+    txn Sender
+    // smart_contracts/dechametz/contract.py:62
+    // Asset(self.token_asset_id)
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    // smart_contracts/dechametz/contract.py:61-63
+    // assert Txn.sender.is_opted_in(
+    //     Asset(self.token_asset_id)
+    // ), "Sender must have opted in to the ForChametz token"
+    asset_holding_get AssetBalance
+    bury 1
+    assert // Sender must have opted in to the ForChametz token
+    // smart_contracts/dechametz/contract.py:65
+    // Asset(self.token_asset_id).balance(Txn.sender) == 0
+    txn Sender
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    asset_holding_get AssetBalance
+    assert // account opted into asset
+    !
+    // smart_contracts/dechametz/contract.py:64-66
+    // assert (
+    //     Asset(self.token_asset_id).balance(Txn.sender) == 0
+    // ), "Must not be holding a ForChametz token already to sell chametz"
+    assert // Must not be holding a ForChametz token already to sell chametz
+    // smart_contracts/dechametz/contract.py:67
+    // assert Txn.sender.is_opted_in(
+    txn Sender
+    // smart_contracts/dechametz/contract.py:68
+    // Global.current_application_id
+    global CurrentApplicationID
+    // smart_contracts/dechametz/contract.py:67-69
+    // assert Txn.sender.is_opted_in(
+    //     Global.current_application_id
+    // ), "Sender must opt-in to the smart contract"
+    app_opted_in
+    assert // Sender must opt-in to the smart contract
+    // smart_contracts/dechametz/contract.py:70
+    // self.chametz_sold[Txn.sender] = chametz
+    txn Sender
+    byte "chametz_sold"
+    frame_dig -1
+    app_local_put
+    // smart_contracts/dechametz/contract.py:71-79
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.token_asset_id,
+    //     asset_amount=1,
+    //     sender=Global.current_application_address,
+    //     # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+    //     asset_receiver=Txn.sender,
+    //     note=b"Sell" + chametz,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/dechametz/contract.py:72
+    // xfer_asset=self.token_asset_id,
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    // smart_contracts/dechametz/contract.py:74
+    // sender=Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/dechametz/contract.py:75-76
+    // # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+    // asset_receiver=Txn.sender,
+    txn Sender
+    // smart_contracts/dechametz/contract.py:77
+    // note=b"Sell" + chametz,
+    byte "Sell"
+    frame_dig -1
+    concat
+    // smart_contracts/dechametz/contract.py:78
+    // fee=0,
+    int 0
+    itxn_field Fee
+    itxn_field Note
+    itxn_field AssetReceiver
+    itxn_field Sender
+    // smart_contracts/dechametz/contract.py:73
+    // asset_amount=1,
+    int 1
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // smart_contracts/dechametz/contract.py:71
+    // itxn.AssetTransfer(
+    int axfer
+    itxn_field TypeEnum
+    // smart_contracts/dechametz/contract.py:71-79
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.token_asset_id,
+    //     asset_amount=1,
+    //     sender=Global.current_application_address,
+    //     # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+    //     asset_receiver=Txn.sender,
+    //     note=b"Sell" + chametz,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // smart_contracts/dechametz/contract.py:82
+    // seller=arc4.Address(Txn.sender),
+    txn Sender
+    // smart_contracts/dechametz/contract.py:83
+    // time=arc4.UInt64(Global.latest_timestamp),
+    global LatestTimestamp
+    itob
+    // smart_contracts/dechametz/contract.py:81-85
+    // Sale(
+    //     seller=arc4.Address(Txn.sender),
+    //     time=arc4.UInt64(Global.latest_timestamp),
+    //     chametz_sold=arc4.String.from_bytes(chametz),
+    // )
+    concat
+    byte 0x002a
+    concat
+    frame_dig -1
+    concat
+    // smart_contracts/dechametz/contract.py:80-86
+    // arc4.emit(
+    //     Sale(
+    //         seller=arc4.Address(Txn.sender),
+    //         time=arc4.UInt64(Global.latest_timestamp),
+    //         chametz_sold=arc4.String.from_bytes(chametz),
+    //     )
+    // )
+    method "Sale(address,uint64,string)"
+    swap
+    concat
+    log
+    retsub
+
+
+// smart_contracts.dechametz.contract.Dechametz.repurchase_chametz() -> void:
+repurchase_chametz:
+    // smart_contracts/dechametz/contract.py:88-91
+    // @arc4.abimethod(
+    //     create="disallow", allow_actions=["CloseOut"], name="Repurchase chametz"
+    // )
+    // def repurchase_chametz(self) -> None:
+    proto 0 0
+    // smart_contracts/dechametz/contract.py:93
+    // Asset(self.token_asset_id).balance(Txn.sender) == 1
+    txn Sender
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    asset_holding_get AssetBalance
+    assert // account opted into asset
+    int 1
+    ==
+    // smart_contracts/dechametz/contract.py:92-94
+    // assert (
+    //     Asset(self.token_asset_id).balance(Txn.sender) == 1
+    // ), "Must hold a ForChametz token to repurchase chametz"
+    assert // Must hold a ForChametz token to repurchase chametz
+    // smart_contracts/dechametz/contract.py:95-102
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.token_asset_id,
+    //     sender=Global.current_application_address,
+    //     # asset_sender=Txn.sender,  # Currently unsupported in Puya
+    //     asset_receiver=Global.current_application_address,
+    //     note=b"Repurchase" + self.chametz_sold[Txn.sender],
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/dechametz/contract.py:96
+    // xfer_asset=self.token_asset_id,
+    int 0
+    byte "token_asset_id"
+    app_global_get_ex
+    assert // check token_asset_id exists
+    // smart_contracts/dechametz/contract.py:97
+    // sender=Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/dechametz/contract.py:98-99
+    // # asset_sender=Txn.sender,  # Currently unsupported in Puya
+    // asset_receiver=Global.current_application_address,
+    dup
+    // smart_contracts/dechametz/contract.py:100
+    // note=b"Repurchase" + self.chametz_sold[Txn.sender],
+    txn Sender
+    int 0
+    byte "chametz_sold"
+    app_local_get_ex
+    assert // check chametz_sold exists for account
+    byte "Repurchase"
+    swap
+    concat
+    // smart_contracts/dechametz/contract.py:101
+    // fee=0,
+    int 0
+    itxn_field Fee
+    itxn_field Note
+    itxn_field AssetReceiver
+    itxn_field Sender
+    itxn_field XferAsset
+    // smart_contracts/dechametz/contract.py:95
+    // itxn.AssetTransfer(
+    int axfer
+    itxn_field TypeEnum
+    // smart_contracts/dechametz/contract.py:95-102
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.token_asset_id,
+    //     sender=Global.current_application_address,
+    //     # asset_sender=Txn.sender,  # Currently unsupported in Puya
+    //     asset_receiver=Global.current_application_address,
+    //     note=b"Repurchase" + self.chametz_sold[Txn.sender],
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // smart_contracts/dechametz/contract.py:105
+    // buyer=arc4.Address(Txn.sender),
+    txn Sender
+    // smart_contracts/dechametz/contract.py:106
+    // time=arc4.UInt64(Global.latest_timestamp),
+    global LatestTimestamp
+    itob
+    // smart_contracts/dechametz/contract.py:108
+    // self.chametz_sold[Txn.sender]
+    txn Sender
+    int 0
+    byte "chametz_sold"
+    app_local_get_ex
+    swap
+    cover 2
+    assert // check chametz_sold exists for account
+    // smart_contracts/dechametz/contract.py:104-110
+    // Repurchase(
+    //     buyer=arc4.Address(Txn.sender),
+    //     time=arc4.UInt64(Global.latest_timestamp),
+    //     chametz_repurchased=arc4.String.from_bytes(
+    //         self.chametz_sold[Txn.sender]
+    //     ),
+    // )
+    uncover 2
+    swap
+    concat
+    byte 0x002a
+    concat
+    swap
+    concat
+    // smart_contracts/dechametz/contract.py:103-111
+    // arc4.emit(
+    //     Repurchase(
+    //         buyer=arc4.Address(Txn.sender),
+    //         time=arc4.UInt64(Global.latest_timestamp),
+    //         chametz_repurchased=arc4.String.from_bytes(
+    //             self.chametz_sold[Txn.sender]
+    //         ),
+    //     )
+    // )
+    method "Repurchase(address,uint64,string)"
+    swap
+    concat
+    log
+    retsub
+
+
+// smart_contracts.dechametz.contract.Dechametz.__init__() -> void:
+__init__:
+    // smart_contracts/dechametz/contract.py:27
+    // def __init__(self) -> None:
+    proto 0 0
+    // smart_contracts/dechametz/contract.py:28
+    // self.is_jewish = Bytes(b"no")
+    byte "is_jewish"
+    byte "no"
+    app_global_put
+    // smart_contracts/dechametz/contract.py:29
+    // self.token_asset_id = UInt64(0)
+    byte "token_asset_id"
+    int 0
+    app_global_put
+    retsub

@@ -1,0 +1,7 @@
+#pragma version 10
+
+smart_contracts.dechametz.contract.Dechametz.clear_state_program:
+    // smart_contracts/dechametz/contract.py:26
+    // class Dechametz(ARC4Contract):
+    int 1
+    return

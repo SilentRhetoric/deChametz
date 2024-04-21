@@ -1,9 +1,9 @@
 // src/components/Home.tsx
 import { useWallet } from '@txnlab/use-wallet'
 import React, { useState } from 'react'
+import AppCalls from './components/AppCalls'
 import ConnectWallet from './components/ConnectWallet'
 import Transact from './components/Transact'
-import AppCalls from './components/AppCalls'
 
 interface HomeProps {}
 
@@ -29,11 +29,11 @@ const Home: React.FC<HomeProps> = () => {
     <div className="hero min-h-screen bg-teal-400">
       <div className="hero-content text-center rounded-lg p-6 max-w-md bg-white mx-auto">
         <div className="max-w-md">
-          <h1 className="text-4xl">
-            Welcome to <div className="font-bold">AlgoKit 🙂</div>
+          <h1 className="text-4xl font-bold">
+            <span className="italic">de</span>Chametz
           </h1>
           <p className="py-6">
-            This starter has been generated using official AlgoKit React template. Refer to the resource below for next steps.
+            Sell your chametz before Passover to a decentralized Algorand smart contract. Connect your wallet to get started.
           </p>
 
           <div className="grid">
