@@ -106,7 +106,7 @@ def sell_chametz(dechametz_client: DechametzClient) -> list[ABIResult]:
 def test_sell_chametz_confirmed(
     dechametz_client: DechametzClient, sell_chametz: list[ABIResult]
 ) -> None:
-    assert sell_chametz[1].tx_id is not None
+    assert sell_chametz[0].tx_id is not None
 
 
 def test_sell_chametz_asset_balance(
@@ -123,15 +123,19 @@ def test_sell_chametz_asset_balance(
 
 @pytest.fixture(scope="session")
 def repurchase_chametz(
+    sell_chametz: list[ABIResult],
     dechametz_client: DechametzClient,
 ) -> ABITransactionResponse[None]:
+    asset_id = dechametz_client.get_global_state().token_asset_id
     sp = dechametz_client.algod_client.suggested_params()
     # Double up the fee to cover the app's innerTxn
     sp.flat_fee = True
     sp.fee = constants.min_txn_fee * 2
 
     result = dechametz_client.close_out_repurchase_chametz(
-        transaction_parameters=TransactionParameters(suggested_params=sp)
+        transaction_parameters=TransactionParameters(
+            suggested_params=sp, foreign_assets=[asset_id]
+        )
     )
     return result
 

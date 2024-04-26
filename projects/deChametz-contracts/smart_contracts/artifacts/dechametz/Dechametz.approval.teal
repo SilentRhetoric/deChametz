@@ -284,7 +284,7 @@ sell_chametz:
     //     xfer_asset=self.token_asset_id,
     //     asset_amount=1,
     //     sender=Global.current_application_address,
-    //     # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+    //     asset_sender=Global.current_application_address,  # type: ignore[call-arg]
     //     asset_receiver=Txn.sender,
     //     note=b"Sell" + chametz,
     //     fee=0,
@@ -299,8 +299,10 @@ sell_chametz:
     // smart_contracts/dechametz/contract.py:74
     // sender=Global.current_application_address,
     global CurrentApplicationAddress
-    // smart_contracts/dechametz/contract.py:75-76
-    // # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+    // smart_contracts/dechametz/contract.py:75
+    // asset_sender=Global.current_application_address,  # type: ignore[call-arg]
+    dup
+    // smart_contracts/dechametz/contract.py:76
     // asset_receiver=Txn.sender,
     txn Sender
     // smart_contracts/dechametz/contract.py:77
@@ -314,6 +316,7 @@ sell_chametz:
     itxn_field Fee
     itxn_field Note
     itxn_field AssetReceiver
+    itxn_field AssetSender
     itxn_field Sender
     // smart_contracts/dechametz/contract.py:73
     // asset_amount=1,
@@ -329,7 +332,7 @@ sell_chametz:
     //     xfer_asset=self.token_asset_id,
     //     asset_amount=1,
     //     sender=Global.current_application_address,
-    //     # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+    //     asset_sender=Global.current_application_address,  # type: ignore[call-arg]
     //     asset_receiver=Txn.sender,
     //     note=b"Sell" + chametz,
     //     fee=0,
@@ -392,11 +395,12 @@ repurchase_chametz:
     //     Asset(self.token_asset_id).balance(Txn.sender) == 1
     // ), "Must hold a ForChametz token to repurchase chametz"
     assert // Must hold a ForChametz token to repurchase chametz
-    // smart_contracts/dechametz/contract.py:95-102
+    // smart_contracts/dechametz/contract.py:95-103
     // itxn.AssetTransfer(
     //     xfer_asset=self.token_asset_id,
+    //     asset_amount=1,
     //     sender=Global.current_application_address,
-    //     # asset_sender=Txn.sender,  # Currently unsupported in Puya
+    //     asset_sender=Txn.sender,  # type: ignore[call-arg]
     //     asset_receiver=Global.current_application_address,
     //     note=b"Repurchase" + self.chametz_sold[Txn.sender],
     //     fee=0,
@@ -408,14 +412,16 @@ repurchase_chametz:
     byte "token_asset_id"
     app_global_get_ex
     assert // check token_asset_id exists
-    // smart_contracts/dechametz/contract.py:97
+    // smart_contracts/dechametz/contract.py:98
     // sender=Global.current_application_address,
     global CurrentApplicationAddress
-    // smart_contracts/dechametz/contract.py:98-99
-    // # asset_sender=Txn.sender,  # Currently unsupported in Puya
-    // asset_receiver=Global.current_application_address,
-    dup
+    // smart_contracts/dechametz/contract.py:99
+    // asset_sender=Txn.sender,  # type: ignore[call-arg]
+    txn Sender
     // smart_contracts/dechametz/contract.py:100
+    // asset_receiver=Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/dechametz/contract.py:101
     // note=b"Repurchase" + self.chametz_sold[Txn.sender],
     txn Sender
     int 0
@@ -425,36 +431,42 @@ repurchase_chametz:
     byte "Repurchase"
     swap
     concat
-    // smart_contracts/dechametz/contract.py:101
+    // smart_contracts/dechametz/contract.py:102
     // fee=0,
     int 0
     itxn_field Fee
     itxn_field Note
     itxn_field AssetReceiver
+    itxn_field AssetSender
     itxn_field Sender
+    // smart_contracts/dechametz/contract.py:97
+    // asset_amount=1,
+    int 1
+    itxn_field AssetAmount
     itxn_field XferAsset
     // smart_contracts/dechametz/contract.py:95
     // itxn.AssetTransfer(
     int axfer
     itxn_field TypeEnum
-    // smart_contracts/dechametz/contract.py:95-102
+    // smart_contracts/dechametz/contract.py:95-103
     // itxn.AssetTransfer(
     //     xfer_asset=self.token_asset_id,
+    //     asset_amount=1,
     //     sender=Global.current_application_address,
-    //     # asset_sender=Txn.sender,  # Currently unsupported in Puya
+    //     asset_sender=Txn.sender,  # type: ignore[call-arg]
     //     asset_receiver=Global.current_application_address,
     //     note=b"Repurchase" + self.chametz_sold[Txn.sender],
     //     fee=0,
     // ).submit()
     itxn_submit
-    // smart_contracts/dechametz/contract.py:105
+    // smart_contracts/dechametz/contract.py:106
     // buyer=arc4.Address(Txn.sender),
     txn Sender
-    // smart_contracts/dechametz/contract.py:106
+    // smart_contracts/dechametz/contract.py:107
     // time=arc4.UInt64(Global.latest_timestamp),
     global LatestTimestamp
     itob
-    // smart_contracts/dechametz/contract.py:108
+    // smart_contracts/dechametz/contract.py:109
     // self.chametz_sold[Txn.sender]
     txn Sender
     int 0
@@ -463,7 +475,7 @@ repurchase_chametz:
     swap
     cover 2
     assert // check chametz_sold exists for account
-    // smart_contracts/dechametz/contract.py:104-110
+    // smart_contracts/dechametz/contract.py:105-111
     // Repurchase(
     //     buyer=arc4.Address(Txn.sender),
     //     time=arc4.UInt64(Global.latest_timestamp),
@@ -478,7 +490,7 @@ repurchase_chametz:
     concat
     swap
     concat
-    // smart_contracts/dechametz/contract.py:103-111
+    // smart_contracts/dechametz/contract.py:104-112
     // arc4.emit(
     //     Repurchase(
     //         buyer=arc4.Address(Txn.sender),

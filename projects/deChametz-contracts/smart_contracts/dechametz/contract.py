@@ -72,7 +72,7 @@ class Dechametz(ARC4Contract):
             xfer_asset=self.token_asset_id,
             asset_amount=1,
             sender=Global.current_application_address,
-            # asset_sender=Global.current_application_address,  # Currently unsupported in Puya
+            asset_sender=Global.current_application_address,  # type: ignore[call-arg]
             asset_receiver=Txn.sender,
             note=b"Sell" + chametz,
             fee=0,
@@ -94,8 +94,9 @@ class Dechametz(ARC4Contract):
         ), "Must hold a ForChametz token to repurchase chametz"
         itxn.AssetTransfer(
             xfer_asset=self.token_asset_id,
+            asset_amount=1,
             sender=Global.current_application_address,
-            # asset_sender=Txn.sender,  # Currently unsupported in Puya
+            asset_sender=Txn.sender,  # type: ignore[call-arg]
             asset_receiver=Global.current_application_address,
             note=b"Repurchase" + self.chametz_sold[Txn.sender],
             fee=0,

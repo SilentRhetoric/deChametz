@@ -54,7 +54,7 @@ main_Sell_chametz_route@5:
     return
 
 main_Repurchase_chametz_route@6:
-    // smart_contracts/dechametz/contract.py:87-89
+    // smart_contracts/dechametz/contract.py:88-90
     // @arc4.abimethod(
     //     create="disallow", allow_actions=["CloseOut"], name="Repurchase chametz"
     // )
@@ -279,11 +279,12 @@ sell_chametz:
     byte "chametz_sold"
     frame_dig -1
     app_local_put
-    // smart_contracts/dechametz/contract.py:71-78
+    // smart_contracts/dechametz/contract.py:71-79
     // itxn.AssetTransfer(
     //     xfer_asset=self.token_asset_id,
     //     asset_amount=1,
     //     sender=Global.current_application_address,
+    //     asset_sender=Global.current_application_address,  # type: ignore[call-arg]
     //     asset_receiver=Txn.sender,
     //     note=b"Sell" + chametz,
     //     fee=0,
@@ -299,19 +300,23 @@ sell_chametz:
     // sender=Global.current_application_address,
     global CurrentApplicationAddress
     // smart_contracts/dechametz/contract.py:75
+    // asset_sender=Global.current_application_address,  # type: ignore[call-arg]
+    dup
+    // smart_contracts/dechametz/contract.py:76
     // asset_receiver=Txn.sender,
     txn Sender
-    // smart_contracts/dechametz/contract.py:76
+    // smart_contracts/dechametz/contract.py:77
     // note=b"Sell" + chametz,
     byte "Sell"
     frame_dig -1
     concat
-    // smart_contracts/dechametz/contract.py:77
+    // smart_contracts/dechametz/contract.py:78
     // fee=0,
     int 0
     itxn_field Fee
     itxn_field Note
     itxn_field AssetReceiver
+    itxn_field AssetSender
     itxn_field Sender
     // smart_contracts/dechametz/contract.py:73
     // asset_amount=1,
@@ -322,24 +327,25 @@ sell_chametz:
     // itxn.AssetTransfer(
     int axfer
     itxn_field TypeEnum
-    // smart_contracts/dechametz/contract.py:71-78
+    // smart_contracts/dechametz/contract.py:71-79
     // itxn.AssetTransfer(
     //     xfer_asset=self.token_asset_id,
     //     asset_amount=1,
     //     sender=Global.current_application_address,
+    //     asset_sender=Global.current_application_address,  # type: ignore[call-arg]
     //     asset_receiver=Txn.sender,
     //     note=b"Sell" + chametz,
     //     fee=0,
     // ).submit()
     itxn_submit
-    // smart_contracts/dechametz/contract.py:81
+    // smart_contracts/dechametz/contract.py:82
     // seller=arc4.Address(Txn.sender),
     txn Sender
-    // smart_contracts/dechametz/contract.py:82
+    // smart_contracts/dechametz/contract.py:83
     // time=arc4.UInt64(Global.latest_timestamp),
     global LatestTimestamp
     itob
-    // smart_contracts/dechametz/contract.py:80-84
+    // smart_contracts/dechametz/contract.py:81-85
     // Sale(
     //     seller=arc4.Address(Txn.sender),
     //     time=arc4.UInt64(Global.latest_timestamp),
@@ -350,7 +356,7 @@ sell_chametz:
     concat
     frame_dig -1
     concat
-    // smart_contracts/dechametz/contract.py:79-85
+    // smart_contracts/dechametz/contract.py:80-86
     // arc4.emit(
     //     Sale(
     //         seller=arc4.Address(Txn.sender),
@@ -367,13 +373,13 @@ sell_chametz:
 
 // smart_contracts.dechametz.contract.Dechametz.repurchase_chametz() -> void:
 repurchase_chametz:
-    // smart_contracts/dechametz/contract.py:87-90
+    // smart_contracts/dechametz/contract.py:88-91
     // @arc4.abimethod(
     //     create="disallow", allow_actions=["CloseOut"], name="Repurchase chametz"
     // )
     // def repurchase_chametz(self) -> None:
     proto 0 0
-    // smart_contracts/dechametz/contract.py:92
+    // smart_contracts/dechametz/contract.py:93
     // Asset(self.token_asset_id).balance(Txn.sender) == 1
     txn Sender
     int 0
@@ -384,33 +390,38 @@ repurchase_chametz:
     assert // account opted into asset
     int 1
     ==
-    // smart_contracts/dechametz/contract.py:91-93
+    // smart_contracts/dechametz/contract.py:92-94
     // assert (
     //     Asset(self.token_asset_id).balance(Txn.sender) == 1
     // ), "Must hold a ForChametz token to repurchase chametz"
     assert // Must hold a ForChametz token to repurchase chametz
-    // smart_contracts/dechametz/contract.py:94-100
+    // smart_contracts/dechametz/contract.py:95-103
     // itxn.AssetTransfer(
     //     xfer_asset=self.token_asset_id,
-    //     sender=Txn.sender,
+    //     asset_amount=1,
+    //     sender=Global.current_application_address,
+    //     asset_sender=Txn.sender,  # type: ignore[call-arg]
     //     asset_receiver=Global.current_application_address,
     //     note=b"Repurchase" + self.chametz_sold[Txn.sender],
     //     fee=0,
     // ).submit()
     itxn_begin
-    // smart_contracts/dechametz/contract.py:95
+    // smart_contracts/dechametz/contract.py:96
     // xfer_asset=self.token_asset_id,
     int 0
     byte "token_asset_id"
     app_global_get_ex
     assert // check token_asset_id exists
-    // smart_contracts/dechametz/contract.py:96
-    // sender=Txn.sender,
+    // smart_contracts/dechametz/contract.py:98
+    // sender=Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/dechametz/contract.py:99
+    // asset_sender=Txn.sender,  # type: ignore[call-arg]
     txn Sender
-    // smart_contracts/dechametz/contract.py:97
+    // smart_contracts/dechametz/contract.py:100
     // asset_receiver=Global.current_application_address,
     global CurrentApplicationAddress
-    // smart_contracts/dechametz/contract.py:98
+    // smart_contracts/dechametz/contract.py:101
     // note=b"Repurchase" + self.chametz_sold[Txn.sender],
     txn Sender
     int 0
@@ -420,35 +431,42 @@ repurchase_chametz:
     byte "Repurchase"
     swap
     concat
-    // smart_contracts/dechametz/contract.py:99
+    // smart_contracts/dechametz/contract.py:102
     // fee=0,
     int 0
     itxn_field Fee
     itxn_field Note
     itxn_field AssetReceiver
+    itxn_field AssetSender
     itxn_field Sender
+    // smart_contracts/dechametz/contract.py:97
+    // asset_amount=1,
+    int 1
+    itxn_field AssetAmount
     itxn_field XferAsset
-    // smart_contracts/dechametz/contract.py:94
+    // smart_contracts/dechametz/contract.py:95
     // itxn.AssetTransfer(
     int axfer
     itxn_field TypeEnum
-    // smart_contracts/dechametz/contract.py:94-100
+    // smart_contracts/dechametz/contract.py:95-103
     // itxn.AssetTransfer(
     //     xfer_asset=self.token_asset_id,
-    //     sender=Txn.sender,
+    //     asset_amount=1,
+    //     sender=Global.current_application_address,
+    //     asset_sender=Txn.sender,  # type: ignore[call-arg]
     //     asset_receiver=Global.current_application_address,
     //     note=b"Repurchase" + self.chametz_sold[Txn.sender],
     //     fee=0,
     // ).submit()
     itxn_submit
-    // smart_contracts/dechametz/contract.py:103
+    // smart_contracts/dechametz/contract.py:106
     // buyer=arc4.Address(Txn.sender),
     txn Sender
-    // smart_contracts/dechametz/contract.py:104
+    // smart_contracts/dechametz/contract.py:107
     // time=arc4.UInt64(Global.latest_timestamp),
     global LatestTimestamp
     itob
-    // smart_contracts/dechametz/contract.py:106
+    // smart_contracts/dechametz/contract.py:109
     // self.chametz_sold[Txn.sender]
     txn Sender
     int 0
@@ -457,7 +475,7 @@ repurchase_chametz:
     swap
     cover 2
     assert // check chametz_sold exists for account
-    // smart_contracts/dechametz/contract.py:102-108
+    // smart_contracts/dechametz/contract.py:105-111
     // Repurchase(
     //     buyer=arc4.Address(Txn.sender),
     //     time=arc4.UInt64(Global.latest_timestamp),
@@ -472,7 +490,7 @@ repurchase_chametz:
     concat
     swap
     concat
-    // smart_contracts/dechametz/contract.py:101-109
+    // smart_contracts/dechametz/contract.py:104-112
     // arc4.emit(
     //     Repurchase(
     //         buyer=arc4.Address(Txn.sender),
